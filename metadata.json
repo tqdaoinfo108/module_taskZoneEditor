@@ -1,0 +1,6 @@
+{
+  "name": "CAD Task Editor",
+  "description": "An interactive 2D CAD floor plan editor for managing polygon zones and tasks. Features semantic zoom, drawing tools, and JSON data export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
