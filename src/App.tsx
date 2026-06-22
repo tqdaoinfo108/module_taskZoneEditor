@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CadTaskEditor } from './cad-task-zone-editor';
+import { CadTaskEditor, CadTaskViewer } from './cad-task-zone-editor';
 import { CadEditorOutput, Zone } from './cad-task-zone-editor/types';
 
 // Demo initial data
@@ -41,6 +41,7 @@ const initialZones: Zone[] = [
 export default function App() {
   const [outputData, setOutputData] = useState<CadEditorOutput | null>(null);
   const [currentImage, setCurrentImage] = useState<string>('https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80');
+  const [isReadonly, setIsReadonly] = useState<boolean>(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -66,9 +67,19 @@ export default function App() {
               Scroll to zoom, drag to pan. Click "Add Polygon" tool to draw.
             </p>
           </div>
-          <div>
-            <label className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md shadow-sm transition-colors inline-block">
-              Upload Blueprint (PNG/JPG)
+          <div className="flex gap-4">
+            <button
+              onClick={() => setIsReadonly(!isReadonly)}
+              className={`text-sm font-medium py-2 px-4 rounded-md shadow-sm transition-colors ${
+                isReadonly 
+                  ? 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200' 
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {isReadonly ? 'View Mode: ON' : 'View Mode: OFF'}
+            </button>
+            <label className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md shadow-sm transition-colors inline-block text-center">
+              Upload Blueprint
               <input 
                 type="file" 
                 accept="image/png, image/jpeg, image/jpg" 
@@ -80,13 +91,22 @@ export default function App() {
         </div>
         
         <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200">
-          <CadTaskEditor 
-            key={currentImage} // Force re-mount when image changes so hook dependencies update correctly
-            image={currentImage}
-            zones={initialZones}
-            onChange={(data) => setOutputData(data)}
-            className="h-[650px] w-full"
-          />
+          {isReadonly ? (
+            <CadTaskViewer 
+              key={`${currentImage}-viewer`}
+              image={currentImage}
+              zones={outputData ? outputData.zones : initialZones}
+              className="h-[650px] w-full rounded-lg"
+            />
+          ) : (
+            <CadTaskEditor 
+              key={`${currentImage}-editor`}
+              image={currentImage}
+              zones={outputData?.zones || initialZones}
+              onChange={(data) => setOutputData(data)}
+              className="h-[650px] w-full"
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -100,14 +120,25 @@ export default function App() {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <h2 className="text-lg font-semibold mb-4 border-b pb-2">Module Usage</h2>
             <pre className="text-xs bg-gray-900 text-gray-100 p-4 rounded border border-gray-200 overflow-auto font-mono">
-{`import { CadTaskEditor } from "cad-task-zone-editor";
+{`import { CadTaskEditor, CadTaskViewer } from "cad-task-zone-editor";
 
 function MyProject() {
   return (
-    <CadTaskEditor
-      image="/floor-plan.png"
-      zones={zones}
-      onChange={(data) => console.log(data)}
+    <>
+      {/* Editor Component */}
+      <CadTaskEditor
+        image="/floor-plan.png"
+        zones={zones}
+        onChange={(data) => console.log(data)}
+      />
+
+      {/* Viewer Component (Full screen map & nodes only) */}
+      <CadTaskViewer
+        image="/floor-plan.png"
+        zones={zones}
+        className="w-full h-screen"
+      />
+    </>
       readonly={false}
     />
   );

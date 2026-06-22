@@ -52,7 +52,7 @@ const EditorInner = ({ image, zones, onChange, readonly }: CadTaskEditorProps) =
       {!readonly && <Toolbar onExport={(data) => onChange?.(data)} />}
       <div className="flex flex-1 overflow-hidden relative">
         <div className="flex-1 relative h-full">
-          <CanvasViewer />
+          <CanvasViewer readonly={readonly} />
         </div>
         {!readonly && <TaskPanel />}
       </div>
@@ -65,6 +65,22 @@ export const CadTaskEditor = (props: CadTaskEditorProps) => {
     <div className={`cad-task-editor-root border border-gray-300 rounded-lg overflow-hidden flex flex-col bg-white shadow-sm ${props.className || 'h-[600px] w-full'}`}>
       <EditorProvider>
         <EditorInner {...props} />
+      </EditorProvider>
+    </div>
+  );
+};
+
+export interface CadTaskViewerProps {
+  image?: string;
+  zones?: Zone[];
+  className?: string;
+}
+
+export const CadTaskViewer = (props: CadTaskViewerProps) => {
+  return (
+    <div className={`cad-task-viewer-root overflow-hidden flex flex-col ${props.className || 'h-full w-full'}`}>
+      <EditorProvider>
+        <EditorInner image={props.image} zones={props.zones} readonly={true} />
       </EditorProvider>
     </div>
   );

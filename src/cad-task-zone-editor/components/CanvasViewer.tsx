@@ -5,9 +5,13 @@ import { useEditorStore } from '../store/useEditorStore';
 import { Point } from '../types';
 import { KonvaEventObject } from 'konva/lib/Node';
 
-export const CanvasViewer = () => {
+interface CanvasViewerProps {
+  readonly?: boolean;
+}
+
+export const CanvasViewer = ({ readonly }: CanvasViewerProps) => {
   const { 
-    image: imageUrl, 
+    image: imageUrl,  
     zones, 
     mode, 
     zoom, 
@@ -93,6 +97,8 @@ export const CanvasViewer = () => {
       y: (pos.y - stage.y()) / scale
     };
 
+    if (readonly) return;
+
     if (mode === 'draw') {
       addPointToCurrent(relativePos);
     } else if (mode === 'select') {
@@ -168,12 +174,13 @@ export const CanvasViewer = () => {
                 <Line
                   points={pointsArray}
                   fill={getStatusColor(zone.task?.status)}
-                  stroke={isSelected ? '#f59e0b' : getStatusStrokeColor(zone.task?.status)} // amber if selected
-                  strokeWidth={isSelected ? 3 / zoom : 2 / zoom}
+                  stroke={isSelected && !readonly ? '#f59e0b' : getStatusStrokeColor(zone.task?.status)} // amber if selected
+                  strokeWidth={isSelected && !readonly ? 3 / zoom : 2 / zoom}
                   closed
-                  draggable={!zone.isLocked && isSelected && mode === 'select'}
+                  draggable={!readonly && !zone.isLocked && isSelected && mode === 'select'}
                   onDragEnd={(e) => {
                     e.cancelBubble = true;
+                    if (readonly) return;
                     const shape = e.target;
                     const deltaX = shape.x();
                     const deltaY = shape.y();
@@ -186,12 +193,12 @@ export const CanvasViewer = () => {
                     updateZone(zone.id, { polygon: newPolygon });
                   }}
                   onClick={() => {
-                    if (mode === 'select') {
+                    if (mode === 'select' && !readonly) {
                       selectZone(zone.id);
                     }
                   }}
                   onTap={() => {
-                    if (mode === 'select') {
+                    if (mode === 'select' && !readonly) {
                       selectZone(zone.id);
                     }
                   }}
@@ -226,7 +233,7 @@ export const CanvasViewer = () => {
                 )}
                 
                 {/* Render handles if selected and not locked */}
-                {isSelected && !zone.isLocked && mode === 'select' && zone.polygon.map((p, idx) => (
+                {!readonly && isSelected && !zone.isLocked && mode === 'select' && zone.polygon.map((p, idx) => (
                   <Circle
                     key={idx}
                     x={p.x}
